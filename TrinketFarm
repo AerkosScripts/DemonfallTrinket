@@ -1,0 +1,67 @@
+_G.ToggleColor = Color3.fromRGB(255,0,0)
+_G.ButtonColor = Color3.fromRGB(255,255,255)
+_G.SliderColor = Color3.fromRGB(0,0,255)
+
+local library = loadstring(game:HttpGet(('https://pastebin.com/raw/FsJak6AT')))() -- It's obfuscated, I won't let you see my ugly coding skills. =)
+
+local w = library:CreateWindow("Verkos")
+
+local b = w:CreateFolder("Farming")
+
+---@diagnostic disable: undefined-global
+
+b:Toggle("HideName", function(value)
+    getgenv().toggle1 = value
+    if getgenv().toggle then
+        coroutine.resume(func1)
+    end
+end)
+
+b:Toggle("Trinket Farm", function(bool)
+    getgenv().toggle = bool
+end)
+
+
+local player = game:GetService("Players").LocalPlayer --getting out player instance
+
+getgenv().toggle = false --A toggle for the farm (global var)
+
+if getgenv().executed then return end -- we dont want player getting kicked cuh if they execute fast they will create alot of loops resulting in a kick
+getgenv().executed = true 
+
+function canTeleport() --for the teleport bypass 
+    if not player:FindFirstChild("SpawnCooldown") and not player:FindFirstChild("LastSpawned") then
+        game:GetService("ReplicatedStorage").Remotes.Sync:InvokeServer("Player", "SpawnCharacter")
+        return 1.5
+    else
+        return 0
+    end
+end
+
+coroutine.wrap(function()
+    while wait(1) do 
+        for _, v in next, workspace:GetChildren() do -- iterates/loops through workspace so we can get the trinkets
+            if player.Character:FindFirstChild("HumanoidRootPart") then --checking if the humanoidrootpart exists to avoid errors from occuring some people wrap a pcall function to avoid errors if it doesnt exist
+                if v:FindFirstChild("PickableItem") and v:FindFirstChild("Part") and toggle then --checking if the actual object is a trinket and also checks if toggle is enabled/true
+                    local duration = canTeleport() -- call the canTeleport function so that we can teleport (bypasses the anti tp)
+                    wait(duration) 
+                    
+                    player.Character.HumanoidRootPart.CFrame = v:FindFirstChild("Part").CFrame --teleport to the trinket so we can pick it up
+                    wait(1) -- waits since if we fire the remote too fast we get kicked
+                    game:GetService("ReplicatedStorage").Remotes.Async:FireServer("Character", "Interaction", v:FindFirstChild("Part")) -- invoke the remote to pick up the trinket 
+                    wait(.5)
+                end 
+            end
+        end
+    end 
+end)()
+
+local func1 = coroutine.create(function()
+    while wait() do
+        if not getgenv().toggle1 then coroutine.yield() end
+        pcall(function()
+            game:GetService("Workspace")[game.Players.LocalPlayer.Name].Head.TrueName:Destroy()
+            game:GetService("Workspace")[game.Players.LocalPlayer.Name].Head.Rank:Destroy()
+        end)
+    end
+end)
